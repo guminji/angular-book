@@ -2,9 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>滚动测试</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <script src="/public/js/jquery.min.js"></script> -->
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
 </head>
+<style>
+.lazyload{
+	visibility: visible;
+	height:30px;
+}
+</style>
 <body>
-
+	<div class="container">
+		<div style="height:900px;"></div>
+	</div>
+	<div class="lazyload">上滑加载更多</div>
 </body>
+<script type="text/javascript">
+	(function(){
+		var load = true;
+		var allLoad = false;
+		window.addEventListener('scroll', scrollHandler, false);
+		function scrollHandler(e){
+			if(load||allLoad) return;
+			var scrollTop = $(window).scrollTop();
+	        var scrollHeight = $(document).height();
+	        var windowHeight = $(window).height();
+	        //console.log('scrollTop'+scrollTop);
+	        //console.log('scrollHeight'+scrollHeight);
+	        //console.log('windowHeight'+windowHeight);
+	        //if (scrollTop + windowHeight == scrollHeight
+	        //load =true;
+			if((scrollHeight-scrollTop-windowHeight)<=0){
+				load =true;
+				//$('.container').append('<div style="height:900px;"></div>');
+				$('.lazyload').css('visibility','visible').text('加载中。。。');
+				setTimeout(loading,500)
+				//setTimeout()
+			}
+		}
+		function changeloadStatus(value){
+				load = !load;
+			//load = value;
+		}
+		function changeallloadStatus(value){
+			allLoad = value;
+		}
+		function loading(){
+				$('.lazyload').text('加载中...');
+				//alert(1);
+				$.ajax(
+					{ url: "/public/test.json",
+						cache:false,
+						context: document.body, 
+						success: function(data){
+        					console.log(1);
+        					//alert(1);
+        					//if(){
+        					if(data.length<10){
+        						window.removeEventListener('scroll', scrollHandler, false);
+        						$('.lazyload').text('没有更多了');
+        						return ;
+        						//window.removeEventListener('scroll', scrollHandler, false);
+
+        					}
+        					$('.container').append('<div style="height:900px;"></div>');
+        					$('.lazyload').text('下拉加载更多');
+
+    						setTimeout(changeloadStatus,500);
+    						
+        					//}
+        					//changeloadStatus(false);
+      					},
+      					fail:function(){console.log(2)},
+      					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						//这个error函数调试时非常有用，如果解析不正确，将会弹出错误框
+						　　　　alert(XMLHttpRequest.responseText); 
+								alert(XMLHttpRequest.status);
+								alert(XMLHttpRequest.readyState);
+								alert(textStatus); // parser error;
+						}
+      				})
+		}
+		loading();
+	})()
+	
+
+</script>
 </html>
