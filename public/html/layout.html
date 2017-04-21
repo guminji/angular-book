@@ -14,63 +14,52 @@
 }
 </style>
 <body>
+	<div >
+		<div style="float: left;width: 50%;height:20px;" class="used">已使用</div>
+		<div style="float: right;width: 50%;height: 20px;" class="unused">未使用</div>
+	</div>
 	<div class="container">
 		<div style="height:900px;"></div>
 	</div>
 	<div class="lazyload">上滑加载更多</div>
 </body>
 <script type="text/javascript">
-	(function(){
-		var load = true;
-		var allLoad = false;
-		window.addEventListener('scroll', scrollHandler, false);
-		function scrollHandler(e){
-			if(load||allLoad) return;
-			var scrollTop = $(window).scrollTop();
-	        var scrollHeight = $(document).height();
-	        var windowHeight = $(window).height();
-	        //console.log('scrollTop'+scrollTop);
-	        //console.log('scrollHeight'+scrollHeight);
-	        //console.log('windowHeight'+windowHeight);
-	        //if (scrollTop + windowHeight == scrollHeight
-	        //load =true;
-			if((scrollHeight-scrollTop-windowHeight)<=0){
-				load =true;
-				//$('.container').append('<div style="height:900px;"></div>');
-				$('.lazyload').css('visibility','visible').text('加载中。。。');
-				setTimeout(loading,500)
-				//setTimeout()
-			}
-		}
-		function changeloadStatus(value){
-				load = !load;
-			//load = value;
-		}
-		function changeallloadStatus(value){
-			allLoad = value;
-		}
-		function loading(){
-				$('.lazyload').text('加载中...');
-				//alert(1);
-				$.ajax(
+	var used;
+	var unused;
+	$('.used').click(function(){
+		unused.clearlazyload();
+		used = new lazyload('container',usedF)
+		//unused.clearlazyload();
+		//used.loading();
+	})
+	$('.unused').click(function(){
+		used.clearlazyload();
+		unused = new lazyload('container',unusedF);
+		//unused.loading();
+	})
+	function unusedF(){
+		console.log(this);
+		var self =this;
+		$.ajax(
 					{ url: "/public/test.json",
 						cache:false,
 						context: document.body, 
 						success: function(data){
-        					console.log(1);
+        					//console.log(2);
         					//alert(1);
         					//if(){
-        					if(data.length<10){
-        						window.removeEventListener('scroll', scrollHandler, false);
+        					//
+        					$('.lazyload').text('下拉加载更多');
+        					if(data.length=10){
+        						window.removeEventListener('scroll', self.scrollH, false);
         						$('.lazyload').text('没有更多了');
-        						return ;
         						//window.removeEventListener('scroll', scrollHandler, false);
 
         					}
-        					$('.container').append('<div style="height:900px;"></div>');
-        					$('.lazyload').text('下拉加载更多');
-
-    						setTimeout(changeloadStatus,500);
+        					$('.'+self.appendTarget).append('<div style="height:900px;"></div>');
+        					//$('.lazyload').text('下拉加载更多');
+    						//self.first =false;
+    						setTimeout(self.changeloadStatus.bind(self),500);
     						
         					//}
         					//changeloadStatus(false);
@@ -84,9 +73,85 @@
 								alert(textStatus); // parser error;
 						}
       				})
-		}
-		loading();
-	})()
+	}
+	function lazyload(appendTarget,loadingFunction){
+		this.appendTarget = appendTarget;
+		this.loadingFunction = loadingFunction;
+		this.first = true; // 是否第一次加载
+		this.load = true;
+		this.allLoad = false;
+		this.scrollH = this.scrollHandler.bind(this);
+		window.addEventListener('scroll', this.scrollH, false);
+		this.loading();
+	}
+	lazyload.prototype.scrollHandler=function(e){
+			if(this.load||this.allLoad) return;
+			var scrollTop = $(window).scrollTop();
+	        var scrollHeight = $(document).height();
+	        var windowHeight = $(window).height();
+	        console.log(1);
+			if((scrollHeight-scrollTop-windowHeight)<=0){
+				this.load =true;
+				$('.lazyload').css('visibility','visible').text('加载中。。。');
+				setTimeout(this.loading.bind(this),500)
+			}
+	}
+	lazyload.prototype.loading =function(){
+			if(this.first){
+				$('.'+this.appendTarget).text('');
+				this.first= false;
+			}else{
+
+			}
+			$('.lazyload').text('加载中...');
+			this.loadingFunction();
+	}
+	lazyload.prototype.changeloadStatus=function(){
+		this.load = !(this.load);
+	}
+	lazyload.prototype.clearlazyload =function(){
+		window.removeEventListener('scroll', this.scrollH, false);
+	}
+	used = new lazyload('container',function(){
+		console.log(this);
+		var self =this;
+		$.ajax(
+					{ url: "/public/test.json",
+						cache:false,
+						context: document.body, 
+						success: function(data){
+        					console.log(1);
+        					alert(1);
+        					//if(){
+        					if(data.length<10){
+        						window.removeEventListener('scroll', self.scrollH, false);
+        						$('.lazyload').text('没有更多了');
+        						return ;
+        						//window.removeEventListener('scroll', scrollHandler, false);
+
+        					}
+        					$('.'+self.appendTarget).append('<div style="height:900px;"></div>');
+        					$('.lazyload').text('下拉加载更多');
+        					//self.first = false;
+    						setTimeout(self.changeloadStatus.bind(self),500);
+    						
+        					//}
+        					//changeloadStatus(false);
+      					},
+      					fail:function(){console.log(2)},
+      					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						//这个error函数调试时非常有用，如果解析不正确，将会弹出错误框
+						　　　　alert(XMLHttpRequest.responseText); 
+								alert(XMLHttpRequest.status);
+								alert(XMLHttpRequest.readyState);
+								alert(textStatus); // parser error;
+						}
+      				})
+	});
+	//used.loading();
+	/*function changeloaTemplete(){
+		.clearlazyload();
+	}*/
 	
 
 </script>
